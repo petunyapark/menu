@@ -1,8 +1,8 @@
 {
   "name": "Petunya Park Cafe",
   "short_name": "Petunya",
-  "start_url": "menu",
-  "display": "standalone",
+  "start_url": "",
+  "display": "fullscreen",
   "background_color": "#000000",
   "theme_color": "#000000",
   "icons": [
