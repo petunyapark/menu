@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Petunya Park Cafe</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-dark: #1a0529;
+      --primary: #7e22ce;
+      --primary-light: #a855f7;
+      --neon: #d946ef;
+      --accent: #f0abfc;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #000 0%, var(--primary-dark) 100%);
+      color: #f3e8ff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow-x: hidden;
+      background-attachment: fixed;
+    }
+    
+    .page {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      min-height: 100vh;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      visibility: hidden;
+      padding-bottom: 100px;
+      z-index: 1;
+    }
+    
+    .page.active {
+      opacity: 1;
+      transform: translateY(0);
+      visibility: visible;
+      padding-top: 50px;
+      padding-bottom: 100px;
+      z-index: 2;
+    }
+    
+    .nav-item {
+      transition: all 0.1s ease;
+      position: relative;
+    }
+    
+    .nav-item.active {
+      color: var(--neon);
+      transform: scale(1.1);
+    }
+    
+    .nav-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50%;
+      height: 6px;
+      border-radius: 2px;
+      background: var(--neon);
+      box-shadow: 0 0 10px var(--neon), 0 0 20px var(--neon);
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    .animate-float {
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    @keyframes neon-pulse {
+      0%, 100% { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px var(--neon), 0 0 20px var(--neon); }
+      50% { text-shadow: 0 0 2px #fff, 0 0 5px #fff, 0 0 10px var(--neon), 0 0 15px var(--neon); }
+    }
+    
+    .neon-text {
+      animation: neon-pulse 1.5s ease-in-out infinite alternate;
+      color: white;
+    }
+    
+    .neon-border {
+      border: 2px solid var(--neon);
+      box-shadow: 0 0 10px var(--neon), inset 0 0 10px var(--neon);
+    }
+    
+    .food-card {
+      background: rgba(30, 6, 50, 0.7);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+    
+    .food-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(216, 70, 239, 0.3);
+      border-color: var(--neon);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--neon) 100%);
+      color: white;
+      border: none;
+      font-weight: bold;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(216, 70, 239, 0.4);
+    }
+    
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: 0.5s;
+    }
+    
+    .btn-primary:hover::before {
+      left: 100%;
+    }
+    
+    .floral-divider {
+      position: relative;
+      height: 40px;
+      margin: 30px 0;
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><path d="M10,10 Q25,0 40,10 T70,10 T100,10" fill="none" stroke="%23a855f7" stroke-width="0.5"/><path d="M15,12 Q20,5 25,12 T35,12 T45,12 T55,12 T65,12 T75,12 T85,12 T95,12" fill="none" stroke="%23d946ef" stroke-width="0.5"/></svg>') center repeat-x;
+      opacity: 0.7;
+    }
+    
+    .social-icon {
+      transition: all 0.3s ease;
+    }
+    
+    .social-icon:hover {
+      color: var(--neon);
+      transform: translateY(-3px);
+      text-shadow: 0 0 8px var(--neon);
+    }
+    
+    .hours-badge {
+      background: rgba(168, 85, 247, 0.2);
+      border: 1px solid var(--primary-light);
+      border-radius: 20px;
+      padding: 8px 15px;
+      font-size: 0.9rem;
+    }
+    
+    .bg-pattern {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(126, 34, 206, 0.1) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(217, 70, 239, 0.1) 0%, transparent 20%);
+      z-index: -1;
+    }
+    
+    .contact-card {
+      background: rgba(30, 6, 50, 0.7);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      border-radius: 16px;
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+    
+    .contact-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(216, 70, 239, 0.3);
+    }
+    
+    .menu-nav {
+      position: sticky;
+      top: 10px;
+      padding-left: 10px;
+      padding-right: 10px;
+      z-index: 20;
+      background: rgba(26, 5, 41, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(168, 85, 247, 0.3);
+    }
+    
+    .menu-nav-item {
+      padding: 12px 16px;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      color: #d8b4fe;
+    }
+    
+    .menu-nav-item.active {
+      color: white;
+      border-bottom: 2px solid var(--neon);
+      text-shadow: 0 0 8px var(--neon);
+    }
+    
+    .menu-category {
+      display: none;
+      animation: fadeIn 0.5s ease forwards;
+    }
+    
+    .menu-category.active {
+      display: block;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .smooth-transition {
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen h-full bg-black relative">
+  <div class="bg-pattern"></div>
+  
+  <!-- Navigation -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-sm border-t border-purple-900 z-50">
+    <div class="flex justify-around items-center py-3 px-2">
+      <button data-page="home" class="nav-item flex flex-col items-center text-purple-300 active">
+        <i class="fas fa-home text-xl mb-1"></i>
+        <span class="text-xs">Ana Sayfa</span>
+      </button>
+      <button data-page="menu" class="nav-item flex flex-col items-center text-gray-400">
+        <i class="fas fa-utensils text-xl mb-1"></i>
+        <span class="text-xs">Menü</span>
+      </button>
+      <button data-page="about" class="nav-item flex flex-col items-center text-gray-400">
+        <i class="fas fa-info-circle text-xl mb-1"></i>
+        <span class="text-xs">Hakkımızda</span>
+      </button>
+      <button data-page="contact" class="nav-item flex flex-col items-center text-gray-400">
+        <i class="fas fa-map-marker-alt text-xl mb-1"></i>
+        <span class="text-xs">İletişim</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Pages -->
+  <div id="pages-container" class="relative">
+    <!-- Home -->
+    <section id="home" class="page active min-h-screen flex items-center justify-center relative overflow-hidden">
+      <div class="text-center px-4 max-w-2xl z-10">
+        <div class="animate-float mb-8">
+          <div class="w-40 h-40 mx-auto bg-gradient-to-br from-purple-900 via-purple-700 to-pink-500 rounded-full flex items-center justify-center neon-border">
+            <i class="fas fa-seedling text-6xl text-white"></i>
+          </div>
+        </div>
+        <h1 class="text-5xl font-bold text-white mb-4 neon-text">Petunya Park</h1>
+        <p class="text-purple-200 text-lg mb-6">Doğanın ve Lezzetin Buluştuğu Nokta</p>
+        
+        <div class="hours-badge inline-block mb-8">
+          <i class="fas fa-clock mr-2 text-purple-300"></i>
+          <span>Hergün: 08:30-23:30</span>
+        </div>
+        
+        <div class="grid gap-4 mt-8 max-w-md mx-auto">
+          <button data-page="menu" class="btn-primary py-3 px-8 rounded-full font-bold text-lg" onclick="showPage('menu')">
+            Menüyü Görüntüle
+          </button>
+          <button data-page="contact" class="bg-transparent border-2 border-purple-500 text-white py-3 px-8 rounded-full font-bold hover:bg-purple-500/20 transition-all" onclick="showPage('contact')">
+            <i class="fas fa-map-marker-alt mr-2"></i>Konumumuz
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Menu -->
+    <section id="menu" class="page hidden min-h-screen py-16 px-4">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-4xl font-bold text-center mb-6 neon-text">Lezzet Menüsü</h2>
+        
+        <!-- Kategori Navigasyonu -->
+        <div class="menu-nav rounded-lg mb-8">
+          <div class="flex overflow-x-auto py-2 px-4 hide-scrollbar">
+            <button data-category="all" class="menu-nav-item active">Hepsi</button>
+            <button data-category="cold" class="menu-nav-item">Soğuk İçecekler</button>
+            <button data-category="hot" class="menu-nav-item">Sıcak İçecekler</button>
+            <button data-category="food" class="menu-nav-item">Yiyecekler</button>
+          </div>
+        </div>
+        
+        <div class="floral-divider"></div>
+        
+        <!-- Tüm Kategoriler -->
+        <div class="menu-category active" id="all-category">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Dinamik olarak oluşturulacak -->
+          </div>
+        </div>
+        
+        <!-- Soğuk İçecekler Kategorisi -->
+        <div class="menu-category" id="cold-category">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Dinamik olarak oluşturulacak -->
+          </div>
+        </div>
+        
+        <!-- Sıcak İçecekler Kategorisi -->
+        <div class="menu-category" id="hot-category">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Dinamik olarak oluşturulacak -->
+          </div>
+        </div>
+        
+        <!-- Yiyecekler Kategorisi -->
+        <div class="menu-category" id="food-category">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Dinamik olarak oluşturulacak -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section id="about" class="page hidden min-h-screen py-16 px-4">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-4xl font-bold text-center mb-12 neon-text">Hakkımızda</h2>
+        
+        <div class="flex flex-col md:flex-row items-center gap-10 mb-16">
+          <div class="w-full md:w-1/2">
+            <div class="relative overflow-hidden rounded-2xl border-2 border-purple-500/50 h-full">
+              <img src="petunya.jpg" 
+                   alt="Petunya Park Cafe" 
+                   class="w-full h-96 object-cover rounded-2xl">
+              <div class="absolute bottom-4 left-4 right-4 bg-black/70 p-4 rounded-lg backdrop-blur-sm">
+                <h3 class="text-xl font-bold text-white">Petunya Park</h3>
+                <p class="text-purple-200 text-sm">Doğayla iç içe keyifli vakitler için</p>
+              </div>
+            </div>
+          </div>
+          <div class="w-full md:w-1/2 text-white space-y-6">
+            <h2 class="text-3xl font-bold text-purple-300">Hikayemiz</h2>
+            <p class="text-purple-200 leading-relaxed">
+              2010 yılında doğa sevgisi ve kaliteli lezzetler tutkusuyla yola çıktık. Petunya Park, şehrin kalabalığından uzaklaşıp doğayla iç içe keyifli vakit geçirebileceğiniz bir sığınak olarak tasarlandı.
+            </p>
+            <p class="text-purple-200 leading-relaxed">
+              Menümüzdeki tüm ürünler organik ve yerel üreticilerden tedarik edilmektedir. Kahvelerimiz özenle seçilmiş çekirdeklerden, tatlılarımız ise günlük olarak taze hazırlanmaktadır.
+            </p>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+          <div class="food-card p-6 rounded-xl">
+            <div class="text-center mb-4">
+              <div class="w-16 h-16 rounded-full bg-purple-700 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-leaf text-2xl text-purple-200"></i>
+              </div>
+              <h3 class="text-xl font-bold text-white">Organik Malzemeler</h3>
+            </div>
+            <p class="text-purple-200 text-center">Tüm ürünlerimiz sertifikalı organik çiftliklerden tedarik edilir</p>
+          </div>
+          
+          <div class="food-card p-6 rounded-xl">
+            <div class="text-center mb-4">
+              <div class="w-16 h-16 rounded-full bg-purple-700 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-mug-hot text-2xl text-purple-200"></i>
+              </div>
+              <h3 class="text-xl font-bold text-white">Özel Karışımlar</h3>
+            </div>
+            <p class="text-purple-200 text-center">Kendimize özel kahve karışımlarımızla benzersiz lezzetler</p>
+          </div>
+          
+          <div class="food-card p-6 rounded-xl">
+            <div class="text-center mb-4">
+              <div class="w-16 h-16 rounded-full bg-purple-700 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-seedling text-2xl text-purple-200"></i>
+              </div>
+              <h3 class="text-xl font-bold text-white">Sürdürülebilirlik</h3>
+            </div>
+            <p class="text-purple-200 text-center">Ekolojik dengeyi koruyan sürdürülebilir uygulamalar</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section id="contact" class="page hidden min-h-screen py-16 px-4">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-4xl font-bold text-center mb-12 neon-text">İletişim & Rezervasyon</h2>
+        
+        <div class="grid grid-cols-1 gap-10 mb-16">
+          <div class="space-y-8">
+            <div class="contact-card">
+              <div class="text-center">
+                <i class="fas fa-map-marker-alt text-5xl text-purple-300 mb-4"></i>
+                <h3 class="text-2xl font-bold text-purple-300 mb-4">Adresimiz</h3>
+                <p class="text-purple-200 text-xl">
+                  Ulucami mah. <br>
+                  Gölbaşı caddesi <br>
+                  No:9 /1 <br />
+                Adıyaman/Merkez
+                </p>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="contact-card">
+                <div class="text-center">
+                  <i class="fas fa-phone-alt text-3xl text-purple-300 mb-4"></i>
+                  <h3 class="text-xl font-bold text-purple-300 mb-2">Telefon</h3>
+                  <p class="text-purple-300 font-semibold mb-1">Rezervasyon</p>
+                  <p class="text-purple-200 text-lg">+90 543 450 61 03</p>
+                </div>
+              </div>
+              
+              <div class="contact-card">
+                <div class="text-center">
+                  <i class="fas fa-envelope text-3xl text-purple-300 mb-4"></i>
+                  <h3 class="text-xl font-bold text-purple-300 mb-2">E-posta</h3>
+                  <p class="text-purple-300 font-semibold mb-1">Rezervasyon</p>
+                  <p class="text-purple-200 text-lg">info@petunyapark.com</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="contact-card">
+              <div class="text-center">
+                <i class="fas fa-clock text-4xl text-purple-300 mb-4"></i>
+                <h3 class="text-2xl font-bold text-purple-300 mb-4">Çalışma Saatleri</h3>
+                <p class="text-purple-200 text-xl">
+                  Hergün: 08:30 - 23:30
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="text-center">
+          <h3 class="text-2xl font-bold text-purple-300 mb-6">Sosyal Medya</h3>
+          <div class="flex justify-center space-x-6">
+            <a href="https://instagram.com/petunyapark" class="social-icon text-purple-300 text-3xl w-14 h-14 rounded-full border-2 border-purple-500 flex items-center justify-center hover:bg-purple-500/20">
+              <i class="fab fa-instagram"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Menü verileri - Kategorilere ayrılmış şekilde
+    const menuCategories = [
+      {
+        id: "cold-drinks",
+        title: "Soğuk İçecekler",
+        icon: "fa-glass-water",
+        type: "cold",
+        items: [
+          { name: "Su", price: 25 },
+          { name: "Kola", price: 100 },
+          { name: "Sprite", price: 100 },
+          { name: "Meyve Suyu", price: 100 },
+          { name: "Soda", price: 70 },
+          { name: "Meyveli Soda", price: 80 },
+          { name: "Fuse Tea", price: 100 },
+          { name: "Sıkma Meyve Suyu", price: 120 },
+          { name: "Limonata", price: 120 },
+          { name: "Ayran", price: 80 },
+          { name: "Churchill", price: 120 },
+          { name: "Nar Suyu", price: 120 },
+          { name: "Kokteyl", price: 150 },
+          { name: "Petunya Özel Atom", price: 150 }
+        ]
+      },
+      {
+        id: "hot-drinks",
+        title: "Sıcak İçecekler",
+        icon: "fa-mug-hot",
+        type: "hot",
+        items: [
+          { name: "Çay", price: 30 },
+          { name: "Sahlep", price: 130 },
+          { name: "Sıcak Çikolata", price: 130 },
+          { name: "Nescafe", price: 100 },
+          { name: "Latte", price: 130 },
+          { name: "Filtre Kahve", price: 150 },
+          { name: "Cappuccino", price: 130 },
+          { name: "Espresso", price: 130 },
+          { name: "C.Amerikano", price: 130 },
+          { name: "C.Macchiato", price: 130 },
+          { name: "Flat White", price: 130 },
+          { name: "White Chocolate Mocha", price: 130 }
+        ]
+      },
+      {
+        id: "herbal-teas",
+        title: "Bitki Çayları",
+        icon: "fa-leaf",
+        type: "hot",
+        items: [
+          { name: "Ihlamur", price: 150 },
+          { name: "Papatya", price: 120 },
+          { name: "Adaçayı", price: 120 },
+          { name: "Nane Limon", price: 120 },
+          { name: "Kış Çayı", price: 120 },
+          { name: "Yeşil Çay", price: 120 },
+          { name: "Böğürtlen", price: 120 },
+          { name: "Kuşburnu", price: 120 }
+        ]
+      },
+      {
+        id: "coffee-types",
+        title: "Kahve Çeşitleri",
+        icon: "fa-coffee",
+        type: "hot",
+        items: [
+          { name: "Türk Kahvesi", price: 90 },
+          { name: "Kervansaray", price: 100 },
+          { name: "Osmanlı", price: 100 },
+          { name: "Menengiç", price: 100 },
+          { name: "Dibek", price: 100 },
+          { name: "Süvari", price: 100 },
+          { name: "Petunya Special", price: 100 },
+          { name: "Sütlü Türk Kahvesi", price: 100 },
+          { name: "Sütlü Nescafe", price: 120 }
+        ]
+      },
+      {
+        id: "milkshakes",
+        title: "Milkshake İçecekler",
+        icon: "fa-whiskey-glass",
+        type: "cold",
+        items: [
+          { name: "Çikolatalı Milkshake", price: 150 },
+          { name: "Çilekli Milkshake", price: 150 },
+          { name: "Muzlu Milkshake", price: 150 },
+          { name: "Karamelli Milkshake", price: 150 },
+          { name: "Vanilyalı Milkshake", price: 150 },
+          { name: "Karadutlu Milkshake", price: 150 }
+        ]
+      },
+      {
+        id: "frozen",
+        title: "Frozen Çeşitleri",
+        icon: "fa-snowflake",
+        type: "cold",
+ items: [
+          { name: "Karpuzlu Frozen", price: 150 },
+          { name: "Çilekli Frozen", price: 150 },
+          { name: "Vişneli Frozen", price: 150 },
+          { name: "Mangolu Frozen", price: 150 },
+          { name: "Orman Meyveli Frozen", price: 150 }
+        ]
+      },
+      {
+        id: "fruit-teas",
+        title: "Meyve Çayı",
+        icon: "fa-apple-whole",
+        type: "hot",
+        items: [
+          { name: "Kuşburnu", price: 60 ,description:"Sıcak/Soğuk" },
+          { name: "Limon", price: 60,description:"Sıcak/Soğuk" },
+          { name: "Karadut", price: 60 ,description:"Sıcak/Soğuk"},
+          { name: "Kekik", price: 60 ,description:"Sıcak/Soğuk"},
+          { name: "Kivi", price: 60,description:"Sıcak/Soğuk" },
+          { name: "Nane Limon", price: 60,description:"Sıcak/Soğuk" },
+          { name: "Portakal", price: 60 ,description:"Sıcak/Soğuk"},
+          { name: "Muz", price: 60,description:"Sıcak/Soğuk" }
+        ]
+      },
+      {
+        id: "ice-coffee",
+        title: "Ice Coffee",
+        icon: "fa-temperature-low",
+        type: "cold",
+        items: [
+          { name: "Karamelli", price: 150 },
+          { name: "Çikolatalı", price: 150 }
+        ]
+      },
+      {
+        id: "milk-types",
+        title: "Süt Çeşitleri",
+        icon: "fa-cow",
+        type: "hot",
+        items: [
+          { name: "Süt", price: 100 },
+          { name: "Muzlu Süt", price: 120 },
+          { name: "Çilekli Süt", price: 120 },
+          { name: "Ballı Süt", price: 120 }
+        ]
+      },
+      {
+        id: "enerji-drink",
+        title: "Enerji İçeceği",
+        icon: "fa-bolt",
+        type: "cold",
+        items: [
+          { name: "Enerji İçeceği", price: 150 }
+        ]
+      },
+      {
+        id: "toast",
+        title: "Tost Çeşitleri",
+        icon: "fa-bread-slice",
+        type: "food",
+        items: [
+          { name: "Kaşarlı", price: 150 },
+          { name: "Sucuklu", price: 150 },
+          { name: "Karışık", price: 180 },
+          { name: "Kavurmalı", price: 250 },
+          { name: "Tost Menü", price: 200 }
+        ]
+      },
+      {
+        id: "general",
+        title: "Tavuk/Makarna Menüleri",
+        icon: "fa-utensils",
+        type: "food",
+        items: [
+          { name: "Köri Soslu Tavuk", price: 350, description:"Tavuk bonfile, krema, mantar, baharat, makarna, salata" },
+          { name: "Barbekü Soslu Tavuk", price: 350, description:"Tavuk bonfile, barbekü sos, mantar, yeşil biber, soğan, baharat, makarna, salata" },
+          { name: "Soya Soslu Tavuk", price: 350, description:"Tavuk bonfile, soya sosu, mantar, yeşil biber, soğan, baha-rat, makarna, salata"},
+          { name: "Acılı Tavuk", price: 350,description:"Tavuk bonfile, pulbiber, baharat, arpacık soğan, yeşilbiber, makarna, salata"},
+          { name: "Tavuk Bonfile", price: 350, description:"Tavuk bonfile, baharat, makarna, patates, salata"},
+          { name: "Tavada Tavuk Özel", price: 350},
+          { name: "Chicken Alfredo", price: 350, description:"Krema, mantar, tavuk göğüs, pesto sos, çeşni çeşitleri" },
+          { name: "Penne Arabiatta", price: 250, description:"Arabiatta sos, çeşni çeşitleri, mantar (makarna)" },
+          { name: "Spagetti Napoliten", price: 250, description:"Domates, sarımsak, fesleğen, zeytin yağı, çeşni çeşitleri"},
+          { name: "Köri Soslu Penne", price: 250, description:"Krema, mantar, köri sosu, çeşni çeşitleri" }
+        ]
+      },
+      {
+        id: "menemen",
+        title: "Menemen Çeşitleri",
+        icon: "fa-egg",
+        type: "food",
+        items: [
+          { name: "Menemen", price: 150 },
+          { name: "Kavurmalı Menemen", price: 200 },
+          { name: "Kaşarlı Menemen", price: 180 }
+        ]
+      },
+      {
+        id: "breakfast",
+        title: "Kahvaltı Çeşitleri",
+        icon: "fa-bacon",
+        type: "food",
+        items: [
+          { name: "Çerkez Tabağı", price: 250 },
+          { name: "Patates Cipsi", price: 200 },
+          { name: "Hamburger", price: 300 },
+          { name: "Kahvaltı Tabağı", price: 350 },
+          { name: "Serpme Kahvaltı (2 Kişilik)", price: 850 }
+        ]
+      },
+      {
+        id: "omelette",
+        title: "Omlet Çeşitleri",
+        icon: "fa-egg",
+        type: "food",
+        items: [
+          { name: "Sade", price: 120 },
+          { name: "Kaşarlı", price: 150 },
+          { name: "Mantarlı", price: 150 },
+          { name: "Patatesli", price: 150 },
+          { name: "Sucuklu", price: 150 },
+          { name: "Kavurmalı", price: 200 }
+        ]
+      },
+      {
+        id: "tatlilar",
+        title: "Tatlı Çeşitleri",
+        icon: "fa-cake-candles",
+        type: "food",
+        items: [
+          { name: "Meyve Tabağı", price: 250 },
+          { name: "Fıstık Rüyası", price: 200 },
+          { name: "Profiterol", price: 200 },
+          { name: "Frambuazlı Cheesecake", price: 200 },
+          { name: "Tiramisu", price: 200 },
+          { name: "Magnolia", price: 150 }
+        ]
+      }
+    ];
+
+    // Menü sayfasını oluştur
+    function renderMenuPage() {
+      const menuPage = document.getElementById('menu');
+      
+      // Tüm kategorileri oluştur
+      const allCategory = menuPage.querySelector('#all-category > div');
+      allCategory.innerHTML = '';
+      
+      menuCategories.forEach(category => {
+        const card = createCategoryCard(category);
+        allCategory.appendChild(card);
+      });
+      
+      // Soğuk içecekler kategorisi
+      const coldCategory = menuPage.querySelector('#cold-category > div');
+      coldCategory.innerHTML = '';
+      menuCategories
+        .filter(cat => cat.type === 'cold')
+        .forEach(category => {
+          const card = createCategoryCard(category);
+          coldCategory.appendChild(card);
+        });
+      
+      // Sıcak içecekler kategorisi
+      const hotCategory = menuPage.querySelector('#hot-category > div');
+      hotCategory.innerHTML = '';
+      menuCategories
+        .filter(cat => cat.type === 'hot')
+        .forEach(category => {
+          const card = createCategoryCard(category);
+          hotCategory.appendChild(card);
+        });
+      
+      // Yiyecekler kategorisi
+      const foodCategory = menuPage.querySelector('#food-category > div');
+      foodCategory.innerHTML = '';
+      menuCategories
+        .filter(cat => cat.type === 'food')
+        .forEach(category => {
+          const card = createCategoryCard(category);
+          foodCategory.appendChild(card);
+        });
+      
+      // Navigasyon butonlarına tıklama olaylarını ekle
+      setupMenuNavigation();
+    }
+    
+    // Kategori kartı oluştur
+    function createCategoryCard(category) {
+      const card = document.createElement('div');
+      card.className = 'food-card rounded-xl p-6';
+      card.dataset.category = category.id;
+      
+      // Kart başlık kısmı
+      const header = document.createElement('div');
+      header.className = 'flex justify-between items-center mb-4';
+      
+      const title = document.createElement('h3');
+      title.className = 'text-xl font-bold text-white';
+      
+      const icon = document.createElement('i');
+      icon.className = `fas ${category.icon} mr-2 text-purple-300`;
+      title.appendChild(icon);
+      title.appendChild(document.createTextNode(category.title));
+      
+      const iconContainer = document.createElement('div');
+      iconContainer.className = 'w-8 h-8 rounded-full bg-purple-700 flex items-center justify-center';
+      
+      const smallIcon = document.createElement('i');
+      smallIcon.className = 'fas ${category.icon} text-purple-200';
+      iconContainer.appendChild(smallIcon);
+      
+      header.appendChild(title);
+      header.appendChild(iconContainer);
+      card.appendChild(header);
+      
+      // Menü öğeleri
+      category.items.forEach(item => {
+        const menuItem = document.createElement('div');
+        menuItem.className = 'menu-item mb-4 pb-4 border-b border-purple-800/50';
+        
+        const itemHeader = document.createElement('div');
+        itemHeader.className = 'flex justify-between';
+        
+        const itemName = document.createElement('h4');
+        itemName.className = 'font-medium text-purple-100';
+        itemName.textContent = item.name;
+        
+        const itemPrice = document.createElement('span');
+        itemPrice.className = 'text-purple-300';
+        itemPrice.textContent = `₺${item.price}`;
+        
+        itemHeader.appendChild(itemName);
+        itemHeader.appendChild(itemPrice);
+        
+        menuItem.appendChild(itemHeader);
+        
+        if (item.description) {
+          const itemDesc = document.createElement('p');
+          itemDesc.className = 'text-sm text-purple-200 mt-1';
+          itemDesc.textContent = item.description;
+          menuItem.appendChild(itemDesc);
+        }
+        
+        card.appendChild(menuItem);
+      });
+      
+      return card;
+    }
+    
+    // Menü navigasyonunu ayarla
+    function setupMenuNavigation() {
+      document.querySelectorAll('.menu-nav-item').forEach(item => {
+        item.addEventListener('click', function() {
+          // Tüm menü öğelerini aktif olmayan olarak işaretle
+          document.querySelectorAll('.menu-nav-item').forEach(i => {
+            i.classList.remove('active');
+          });
+          
+          // Tıklanan öğeyi aktif yap
+          this.classList.add('active');
+          
+          // Kategoriye göre filtreleme
+          const category = this.dataset.category;
+          
+          // Tüm menü kategorilerini gizle
+          document.querySelectorAll('.menu-category').forEach(cat => {
+            cat.classList.remove('active');
+          });
+          
+          document.getElementById(`${category}-category`).classList.add('active');
+        });
+      });
+    }
+    
+    // Sayfa geçiş fonksiyonu
+    function showPage(pageId) {
+      const current = document.querySelector('.page.active');
+      const next = document.getElementById(pageId);
+      
+      if (current === next) return;
+      
+      // Mevcut sayfayı kapat
+      gsap.to(current, {
+        opacity: 0,
+        y: 0,
+        duration: 0.4,
+        ease: "power2.inOut",
+        onComplete: () => {
+          current.classList.remove('active');
+          setTimeout(() => {
+            current.style.display = 'none';
+          }, 400);
+        }
+      });
+      
+      // Yeni sayfayı aç
+      next.style.display = 'block';
+      next.classList.add('active');
+      gsap.fromTo(next, 
+        { opacity: 0, y: 20 }, 
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          ease: "power2.out"
+        }
+      );
+
+      // Navigasyon güncelleme
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        item.classList.remove('text-purple-300');
+        item.querySelector('span').classList.remove('text-purple-300');
+        item.querySelector('span').classList.add('text-gray-400');
+      });
+      
+      const activeNav = document.querySelector(`[data-page="${pageId}"]`);
+      activeNav.classList.add('active');
+      activeNav.classList.add('text-purple-300');
+      activeNav.querySelector('span').classList.remove('text-gray-400');
+      activeNav.querySelector('span').classList.add('text-purple-300');
+      
+      // Menü sayfasına geçiş yapılıyorsa menüyü render et
+      if (pageId === 'menu') {
+        renderMenuPage();
+      }
+    }
+
+    // Sayfa yüklendiğinde
+    document.addEventListener('DOMContentLoaded', () => {
+      // Diğer event listener'lar
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (!btn.classList.contains('active')) showPage(btn.dataset.page);
+        });
+      });
+      
+      // Swipe algılama
+      let touchStartX = 0;
+      const pages = ['home', 'menu', 'about', 'contact'];
+      document.addEventListener('touchstart', e => {
+        if(e.target.className.includes('menu-nav-item')) return;
+        touchStartX = e.touches[0].clientX;
+      });
+      
+      document.addEventListener('touchend', e => {
+        if(e.target.className.includes('menu-nav-item')) return;
+        const diff = touchStartX - e.changedTouches[0].clientX;
+        const idx = pages.indexOf(document.querySelector('.page.active').id);
+        if (Math.abs(diff) < 100) return;
+        if (diff > 0 && idx < pages.length - 1) {
+          showPage(pages[idx + 1]);
+          window.scrollTo(0,0)
+        } else if (diff < 0 && idx > 0) {
+          showPage(pages[idx - 1]);
+          window.scrollTo(0,0)
+        }
+      });
+    });
+  </script>
+</body>
+</html>
